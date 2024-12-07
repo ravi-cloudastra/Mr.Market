@@ -41,11 +41,15 @@ jobs:
         run: |
           pwd
           ls -R
+          ls
 
       - name: Build server in SGX enclave
         run: |
           set -x
-          docker build -f ./server/Dockerfile.sgx -t mr-market-sgx .
+          ls
+          cd server
+          ls
+          docker build -f Dockerfile.sgx -t mr-market-sgx .
 
       - name: Generate attestation proof
         run: |
