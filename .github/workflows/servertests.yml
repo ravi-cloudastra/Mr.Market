@@ -39,7 +39,7 @@ jobs:
 
       - name: Build server in SGX enclave
         run: |
-          docker build -f Dockerfile.sgx -t mr-market-sgx .
+          make build-sgx
 
       - name: Generate attestation proof
         run: |
