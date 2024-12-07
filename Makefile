@@ -48,3 +48,7 @@ start-server-docker:
 	@echo "Starting server in docker..."
 	@cd server && docker-compose up
 .PHONY: start-server-docker
+
+build-sgx:
+	@echo "Building the project for SGX..."
+	docker build -f Dockerfile.sgx -t mr-market-sgx .
