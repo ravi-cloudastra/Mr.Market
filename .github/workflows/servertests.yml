@@ -39,6 +39,7 @@ jobs:
 
       - name: Build server in SGX enclave
         run: |
+          set -x
           make build-sgx
 
       - name: Generate attestation proof
