@@ -51,5 +51,5 @@ start-server-docker:
 
 build-sgx:
 	@echo "Building the project for SGX..."
-	docker build -f Dockerfile.sgx -t mr-market-sgx .
+	docker build -f server/Dockerfile.sgx -t mr-market-sgx .
 .PHONY: build-sgx
