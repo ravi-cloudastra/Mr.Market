@@ -59,6 +59,13 @@ jobs:
       - name: Build server in SGX enclave
         run: make build-sgx
         working-directory: ${{ github.workspace }}
+        
+      - name: Install Additional SGX Tools
+        run: |
+          sudo apt-get install -y libsgx-quote-ex libsgx-aesm-service
+      
+      - name: Start AESM Service
+        run: sudo /opt/intel/sgx-aesm-service/aesm/aesm_service --no-daemon &
 
       - name: Generate attestation proof
         run: make generate-attestation
