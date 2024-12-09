@@ -53,3 +53,8 @@ build-sgx:
 	@echo "Building the project for SGX..."
 	docker build -f server/Dockerfile.sgx -t mr-market-sgx .
 .PHONY: build-sgx
+
+generate-attestation:
+	@echo "Generating attestation proof..."
+	sgx_create_report -o server/attestation/attestation_proof.json
+.PHONY: generate-attestation
