@@ -1,6 +1,14 @@
-FROM intel/sgx-dcap:latest
+FROM ubuntu:20.04
 
 WORKDIR /usr/src/app
+
+# Install Intel SGX dependencies
+RUN apt-get update && \
+    apt-get install -y wget gnupg && \
+    wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | apt-key add - && \
+    echo "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main" | tee /etc/apt/sources.list.d/intel-sgx.list && \
+    apt-get update && \
+    apt-get install -y libsgx-enclave-common libsgx-urts
 
 COPY package*.json ./
 COPY yarn.lock ./
