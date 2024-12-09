@@ -35,12 +35,13 @@ jobs:
       - name: Add Intel SGX Repository and Install Dependencies
         run: |
           sudo apt-get update
-          wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo tee /etc/apt/trusted.gpg.d/intel-sgx-archive-keyring.gpg > /dev/null
-          echo "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+          wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/intel-sgx-archive-keyring.gpg
+          echo "deb [signed-by=/etc/apt/trusted.gpg.d/intel-sgx-archive-keyring.gpg] https://download.01.org/intel-sgx/sgx_repo/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/intel-sgx.list
           sudo apt-get update
+      
+          # Install Intel SGX Dependencies
           sudo apt-get install -y libsgx-enclave-common libsgx-urts libsgx-epid libsgx-quote-ex libsgx-launch
-          wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu22.04-server/sgx-aesm-service_2.17.1_amd64.deb -O sgx-aesm-service.deb
-          sudo apt-get install -y ./sgx-aesm-service.deb
+
 
       - name: Verify SGX SDK Installation
         run: sgx_sign --version
