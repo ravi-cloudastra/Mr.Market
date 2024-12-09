@@ -44,29 +44,30 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libsgx-enclave-common libsgx-urts libsgx-epid libsgx-quote-ex libsgx-launch
 
+      - name: Install Intel SGX Driver
+        run: |
+          wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu22.04-server/sgx_linux_x64_driver_1.41.bin -O sgx_driver.bin
+          chmod +x sgx_driver.bin
+          sudo ./sgx_driver.bin
+      
       - name: Install Intel SGX SDK
         run: |
-          wget https://download.01.org/intel-sgx/sgx-linux/2.24/distro/ubuntu22.04-server/sgx_linux_x64_sdk_2.24.100.3.bin -O sgx_sdk.bin
+          wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu22.04-server/sgx_linux_x64_sdk_2.25.100.3.bin -O sgx_sdk.bin
           chmod +x sgx_sdk.bin
           echo -e "no\n/opt/intel" | sudo ./sgx_sdk.bin
-
+      
       - name: Set SGX SDK Environment Variables
         run: |
           echo "SGX_SDK=/opt/intel/sgxsdk" >> $GITHUB_ENV
           echo "PATH=/opt/intel/sgxsdk/bin:/opt/intel/sgxsdk/bin/x64:$PATH" >> $GITHUB_ENV
-
-      - name: Install SGX Kernel Modules
-        run: |
-          sudo apt-get install -y linux-headers-$(uname -r)
-          sudo apt-get install -y dkms
-          sudo modprobe intel_sgx
-
+      
       - name: Install AESM Service and DCAP Tools
         run: |
-          wget https://download.01.org/intel-sgx/sgx-linux/2.24/distro/ubuntu22.04-server/sgx_debian_local_repo.tgz -O sgx_debian_local_repo.tgz
+          wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu22.04-server/sgx_debian_local_repo.tgz -O sgx_debian_local_repo.tgz
           tar -xzf sgx_debian_local_repo.tgz
           sudo dpkg -i sgx_debian_local_repo/sgx-aesm-service*.deb || sudo apt-get install -f -y
-          sudo apt-get install -y libsgx-dcap-ql libsgx-dcap-quote-verify sgx-aesm-service
+          sudo apt-get install -y libsgx-dcap-ql libsgx-dcap-quote-verify
+
 
       - name: Start AESM Service
         run: |
