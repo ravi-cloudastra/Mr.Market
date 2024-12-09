@@ -44,11 +44,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libsgx-enclave-common libsgx-urts libsgx-epid libsgx-quote-ex libsgx-launch
 
+      - name: Install DKMS and Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dkms linux-headers-$(uname -r) build-essential
+      
       - name: Install Intel SGX Driver
         run: |
           wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu22.04-server/sgx_linux_x64_driver_1.41.bin -O sgx_driver.bin
           chmod +x sgx_driver.bin
           sudo ./sgx_driver.bin
+
+      - name: Verify SGX Driver Installation
+        run: |
+          lsmod | grep intel_sgx || echo "intel_sgx module not loaded"
+
       
       - name: Install Intel SGX SDK
         run: |
