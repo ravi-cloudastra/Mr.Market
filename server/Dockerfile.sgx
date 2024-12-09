@@ -10,12 +10,14 @@ RUN apt-get update && \
     apt-get update && \
     apt-get install -y libsgx-enclave-common libsgx-urts
 
-COPY package*.json ./
-COPY yarn.lock ./
+# Copy dependencies
+COPY server/package*.json ./
+COPY server/yarn.lock ./
 
 RUN yarn install
 
-COPY . .
+# Copy the rest of the server code
+COPY server/ ./
 
 RUN yarn build
 
