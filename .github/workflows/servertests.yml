@@ -60,10 +60,21 @@ jobs:
         run: make build-sgx
         working-directory: ${{ github.workspace }}
       
-      - name: Download and Install AESM Service
+      - name: Download and Install AESM Service from Local Repository
         run: |
-          wget https://download.01.org/intel-sgx/sgx-linux/2.24/distro/ubuntu22.04-server/sgx-aesm-service_2.24.100.3_amd64.deb -O sgx-aesm-service.deb
-          sudo dpkg -i sgx-aesm-service.deb || sudo apt-get install -f -y
+          # Download the local repository package
+          wget https://download.01.org/intel-sgx/sgx-linux/2.24/distro/ubuntu22.04-server/sgx_debian_local_repo.tgz -O sgx_debian_local_repo.tgz
+          
+          # Extract the repository
+          tar -xzf sgx_debian_local_repo.tgz
+          
+          # Add the extracted repository to the system sources
+          sudo cp -r sgx_debian_local_repo/* /etc/apt/
+          sudo apt-get update
+          
+          # Install the AESM service
+          sudo apt-get install -y libsgx-aesm-service
+
       
       - name: Start AESM Service
         run: sudo systemctl start aesmd
