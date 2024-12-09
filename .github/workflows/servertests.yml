@@ -67,7 +67,7 @@ jobs:
       - name: Download and Install AESM Service
         run: |
           wget https://download.01.org/intel-sgx/sgx-linux/2.24/distro/ubuntu22.04-server/sgx-aesm-service_2.24.100.3_amd64.deb -O sgx-aesm-service.deb
-          sudo dpkg -i sgx-aesm-service.deb
+          sudo dpkg -i sgx-aesm-service.deb || sudo apt-get install -f -y
       
       - name: Start AESM Service
         run: sudo systemctl start aesmd
@@ -75,8 +75,9 @@ jobs:
       - name: Verify AESM Service Status
         run: sudo systemctl status aesmd
       
-      - name: Generate attestation proof
+      - name: Generate Attestation Proof
         run: make generate-attestation
+
 
       - name: Upload attestation artifact
         uses: actions/upload-artifact@v3
