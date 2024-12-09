@@ -1,9 +1,11 @@
 name: Runs All Server Unit Tests
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
 jobs:
   test:
     timeout-minutes: 60
@@ -28,18 +30,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-  
+
       - name: Debugging:List files in the current directory
         run: ls -R
-  
+
       - name: Add Intel SGX Repository and Install Dependencies
         run: |
           sudo apt-get update
           wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/intel-sgx-archive-keyring.gpg
           echo "deb [signed-by=/etc/apt/trusted.gpg.d/intel-sgx-archive-keyring.gpg] https://download.01.org/intel-sgx/sgx_repo/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/intel-sgx.list
           sudo apt-get update
-      
-          # Install Intel SGX Dependencies
           sudo apt-get install -y libsgx-enclave-common libsgx-urts libsgx-epid libsgx-quote-ex libsgx-launch
 
       - name: Install Intel SGX SDK
@@ -48,22 +48,20 @@ jobs:
           chmod +x sgx_sdk.bin
           echo -e "no\n/opt/intel" | sudo ./sgx_sdk.bin
 
-      
-      - name: Source SGX SDK Environment
+      - name: Set SGX SDK Environment Variables
         run: |
-          source /opt/intel/sgxsdk/environment
-          echo "source /opt/intel/sgxsdk/environment" >> $GITHUB_ENV
-      
+          echo "SGX_SDK=/opt/intel/sgxsdk" >> $GITHUB_ENV
+          echo "PATH=/opt/intel/sgxsdk/bin:/opt/intel/sgxsdk/bin/x64:$PATH" >> $GITHUB_ENV
+
       - name: Verify SGX SDK Installation
         run: sgx_sign --version
-  
+
       - name: Build server in SGX enclave
         run: make build-sgx
         working-directory: ${{ github.workspace }}
 
       - name: Generate attestation proof
-        run: |
-          make generate-attestation
+        run: make generate-attestation
 
       - name: Upload attestation artifact
         uses: actions/upload-artifact@v3
