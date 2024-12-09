@@ -56,5 +56,9 @@ build-sgx:
 
 generate-attestation:
 	@echo "Generating attestation proof..."
-	sgx_create_report -o server/attestation/attestation_proof.json
+	mkdir -p server/attestation
+	# Command to generate attestation report
+	aesm-service --no-daemon & \
+	sleep 2 && \
+	sgx_get_quote -o server/attestation/attestation_proof.json
 .PHONY: generate-attestation
