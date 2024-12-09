@@ -54,7 +54,7 @@ jobs:
           echo "PATH=/opt/intel/sgxsdk/bin:/opt/intel/sgxsdk/bin/x64:$PATH" >> $GITHUB_ENV
 
       - name: Verify SGX SDK Installation
-        run: sgx_sign --version
+        run: sgx_sign -version
 
       - name: Build server in SGX enclave
         run: make build-sgx
