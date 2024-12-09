@@ -32,15 +32,13 @@ jobs:
       - name: Debugging:List files in the current directory
         run: ls -R
   
-      - name: Install SGX dependencies and SDK
+      - name: Add Intel SGX Repository and Install Dependencies
         run: |
           sudo apt-get update
+          wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
+          echo "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+          sudo apt-get update
           sudo apt-get install -y libsgx-enclave-common libsgx-urts libsgx-epid libsgx-quote-ex libsgx-launch libsgx-aesm-service
-          wget https://download.01.org/intel-sgx/latest/linux-latest/distro/ubuntu20.04-server/sgx_linux_x64_sdk_2.15.1.3.bin -O sgx_sdk.bin
-          chmod +x sgx_sdk.bin
-          echo -e "no\n/opt/intel" | sudo ./sgx_sdk.bin
-          source /opt/intel/sgxsdk/environment
-          echo "source /opt/intel/sgxsdk/environment" >> ~/.bashrc
 
       - name: Verify SGX SDK Installation
         run: sgx_sign --version
