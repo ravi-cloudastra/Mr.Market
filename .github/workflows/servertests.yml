@@ -31,7 +31,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Debugging: List files in the current directory
+      - name: Debugging:List files in the current directory
         run: ls -R
 
       - name: Add Intel SGX Repository and Install Dependencies
