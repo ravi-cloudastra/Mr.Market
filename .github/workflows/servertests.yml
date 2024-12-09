@@ -60,28 +60,27 @@ jobs:
         run: make build-sgx
         working-directory: ${{ github.workspace }}
       
-      - name: Download and Install AESM Service
+      - name: Install AESM Service and DCAP Tools
         run: |
           wget https://download.01.org/intel-sgx/sgx-linux/2.24/distro/ubuntu22.04-server/sgx_debian_local_repo.tgz -O sgx_debian_local_repo.tgz
           tar -xzf sgx_debian_local_repo.tgz
           sudo dpkg -i sgx_debian_local_repo/sgx-aesm-service*.deb || sudo apt-get install -f -y
+          sudo apt-get install -y libsgx-dcap-ql libsgx-dcap-quote-verify sgx-pck-id-retrieval-tool
       
       - name: Start AESM Service
         run: |
-          sudo systemctl start aesmd
-          sudo systemctl status aesmd
+          sudo /opt/intel/sgx-aesm-service/aesm/aesm_service --no-daemon &
       
-      - name: Install SGX DCAP Tools
+      - name: Verify SGX Tools Installation
         run: |
-          sudo apt-get install -y libsgx-dcap-ql libsgx-dcap-quote-verify libsgx-dcap-default-qpl
-      
-      - name: Verify SGX DCAP Tools Installation
-        run: |
-          sgx_get_quote -h || echo "sgx_get_quote not found"
+          ls /opt/intel/sgx-aesm-service/aesm
+          which sgx_pck_id_retrieval_tool || echo "sgx_pck_id_retrieval_tool not found"
       
       - name: Generate Attestation Proof
         run: |
-          make generate-attestation
+          mkdir -p server/attestation
+          sgx_pck_id_retrieval_tool -o server/attestation/attestation_proof.json
+
 
 
 
