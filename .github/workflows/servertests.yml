@@ -60,27 +60,29 @@ jobs:
         run: make build-sgx
         working-directory: ${{ github.workspace }}
       
-      - name: Download and Extract Local SGX Repository
+      - name: Download and Install AESM Service
         run: |
           wget https://download.01.org/intel-sgx/sgx-linux/2.24/distro/ubuntu22.04-server/sgx_debian_local_repo.tgz -O sgx_debian_local_repo.tgz
           tar -xzf sgx_debian_local_repo.tgz
-          ls -R sgx_debian_local_repo
-      
-      - name: Install AESM Service Manually
-        run: |
-          # Find and install the AESM service package manually
-          find sgx_debian_local_repo -name "sgx-aesm-service*.deb" -exec sudo dpkg -i {} \; || sudo apt-get install -f -y
-
-
+          sudo dpkg -i sgx_debian_local_repo/sgx-aesm-service*.deb || sudo apt-get install -f -y
       
       - name: Start AESM Service
-        run: sudo systemctl start aesmd
+        run: |
+          sudo systemctl start aesmd
+          sudo systemctl status aesmd
       
-      - name: Verify AESM Service Status
-        run: sudo systemctl status aesmd
+      - name: Install SGX DCAP Tools
+        run: |
+          sudo apt-get install -y libsgx-dcap-ql libsgx-dcap-quote-verify libsgx-dcap-default-qpl
+      
+      - name: Verify SGX DCAP Tools Installation
+        run: |
+          sgx_get_quote -h || echo "sgx_get_quote not found"
       
       - name: Generate Attestation Proof
-        run: make generate-attestation
+        run: |
+          make generate-attestation
+
 
 
       - name: Upload attestation artifact
