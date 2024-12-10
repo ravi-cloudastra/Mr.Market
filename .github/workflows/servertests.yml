@@ -31,6 +31,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install Compatible Kernel with SGX Support
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y linux-image-5.15.0-86-generic linux-headers-5.15.0-86-generic
+          echo "Rebooting into the new kernel..."
+          sudo reboot
+
+      - name: Wait for Reboot
+        run: sleep 60
+
+      - name: Verify Current Kernel Version
+        run: uname -r
+
       - name: Install Utilities for Debconf
         run: |
           sudo apt-get update
@@ -47,13 +60,12 @@ jobs:
       - name: Install DKMS and Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y dkms linux-headers-$(uname -r) build-essential
+          sudo apt-get install -y dkms build-essential
 
       - name: Load In-Kernel SGX Module
         run: |
           sudo modprobe intel_sgx
           lsmod | grep intel_sgx
-
 
       - name: Install Intel SGX SDK
         run: |
@@ -93,3 +105,4 @@ jobs:
         with:
           name: attestation-proof
           path: ./server/attestation/attestation_proof.json
+
