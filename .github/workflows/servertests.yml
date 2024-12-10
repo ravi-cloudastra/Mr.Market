@@ -26,23 +26,20 @@ jobs:
         run: yarn test
 
   build-sgx:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Compatible Kernel with SGX Support
+      - name: Install DKMS and SGX Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y linux-image-5.15.0-86-generic linux-headers-5.15.0-86-generic
-          echo "Rebooting into the new kernel..."
-          sudo reboot
-
-      - name: Wait for Reboot
-        run: sleep 60
-
-      - name: Verify Current Kernel Version
-        run: uname -r
+          sudo apt-get install -y dkms build-essential linux-headers-$(uname -r) libsgx-enclave-common libsgx-urts libsgx-epid libsgx-quote-ex libsgx-launch
+          
+      - name: Load In-Kernel SGX Module
+        run: |
+          sudo modprobe intel_sgx
+          lsmod | grep intel_sgx
 
       - name: Install Utilities for Debconf
         run: |
