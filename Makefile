@@ -48,3 +48,17 @@ start-server-docker:
 	@echo "Starting server in docker..."
 	@cd server && docker-compose up
 .PHONY: start-server-docker
+
+build-sgx:
+	@echo "Building the project for SGX..."
+	docker build -f server/Dockerfile.sgx -t mr-market-sgx .
+.PHONY: build-sgx
+
+generate-attestation:
+	@echo "Generating attestation proof..."
+	mkdir -p server/attestation
+	# Command to generate attestation report
+	aesm-service --no-daemon & \
+	sleep 2 && \
+	sgx_get_quote -o server/attestation/attestation_proof.json
+.PHONY: generate-attestation

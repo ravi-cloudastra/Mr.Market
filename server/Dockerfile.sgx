@@ -1,0 +1,29 @@
+FROM ubuntu:20.04
+
+WORKDIR /usr/src/app
+
+# Install dependencies and yarn
+RUN apt-get update && \
+    apt-get install -y wget gnupg curl && \
+    wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | apt-key add - && \
+    echo "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main" | tee /etc/apt/sources.list.d/intel-sgx.list && \
+    apt-get update && \
+    apt-get install -y libsgx-enclave-common libsgx-urts && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g yarn
+
+# Copy dependencies
+COPY server/package*.json ./
+COPY server/yarn.lock ./
+
+RUN yarn install
+
+# Copy the rest of the server code
+COPY server/ ./
+
+RUN yarn build
+
+EXPOSE 3000
+
+CMD ["yarn", "start:prod"]
