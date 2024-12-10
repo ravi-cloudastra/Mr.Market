@@ -26,45 +26,25 @@ jobs:
         run: yarn test
 
   build-sgx:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install DKMS and Build Dependencies
+      - name: Debugging:List files in the current directory
+        run: ls -R
+
+      - name: Add Intel SGX Repository and Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y dkms build-essential
-
-      - name: Install Generic Kernel
-        run: |
-          sudo apt-get install -y linux-image-generic linux-headers-generic
-
-      - name: Set Default Boot to Generic Kernel
-        run: |
-          sudo sed -i 's/GRUB_DEFAULT=.*/GRUB_DEFAULT="Advanced options for Ubuntu>Ubuntu, with Linux generic"/' /etc/default/grub
-          sudo update-grub
-
-      - name: Reboot to Apply Kernel Changes
-        run: |
-          echo "Rebooting to apply the generic kernel..."
-          sudo reboot
-
-      - name: Load In-Kernel SGX Module
-        run: |
-          sudo modprobe intel_sgx
-          lsmod | grep intel_sgx
-
-      - name: Add Intel SGX Repository and Install SGX Dependencies
-        run: |
-          wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
-          echo "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main" | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+          wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/intel-sgx-archive-keyring.gpg
+          echo "deb [signed-by=/etc/apt/trusted.gpg.d/intel-sgx-archive-keyring.gpg] https://download.01.org/intel-sgx/sgx_repo/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/intel-sgx.list
           sudo apt-get update
           sudo apt-get install -y libsgx-enclave-common libsgx-urts libsgx-epid libsgx-quote-ex libsgx-launch
 
       - name: Install Intel SGX SDK
         run: |
-          wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu20.04-server/sgx_linux_x64_sdk_2.25.100.3.bin -O sgx_sdk.bin
+          wget https://download.01.org/intel-sgx/sgx-linux/2.24/distro/ubuntu22.04-server/sgx_linux_x64_sdk_2.24.100.3.bin -O sgx_sdk.bin
           chmod +x sgx_sdk.bin
           echo -e "no\n/opt/intel" | sudo ./sgx_sdk.bin
 
@@ -73,9 +53,16 @@ jobs:
           echo "SGX_SDK=/opt/intel/sgxsdk" >> $GITHUB_ENV
           echo "PATH=/opt/intel/sgxsdk/bin:/opt/intel/sgxsdk/bin/x64:$PATH" >> $GITHUB_ENV
 
+      - name: Verify SGX SDK Installation
+        run: sgx_sign -version
+
+      - name: Build server in SGX enclave
+        run: make build-sgx
+        working-directory: ${{ github.workspace }}
+
       - name: Install AESM Service and DCAP Tools
         run: |
-          wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu20.04-server/sgx_debian_local_repo.tgz -O sgx_debian_local_repo.tgz
+          wget https://download.01.org/intel-sgx/sgx-linux/2.24/distro/ubuntu22.04-server/sgx_debian_local_repo.tgz -O sgx_debian_local_repo.tgz
           tar -xzf sgx_debian_local_repo.tgz
           sudo dpkg -i sgx_debian_local_repo/sgx-aesm-service*.deb
           sudo apt-get install -y libsgx-dcap-ql libsgx-dcap-quote-verify
@@ -93,9 +80,10 @@ jobs:
       - name: Generate Attestation Proof
         run: |
           mkdir -p server/attestation
+          # Use sgx_get_quote or appropriate command for attestation
           sgx_get_quote -o server/attestation/attestation_proof.json
 
-      - name: Upload Attestation Artifact
+      - name: Upload attestation artifact
         uses: actions/upload-artifact@v3
         with:
           name: attestation-proof
