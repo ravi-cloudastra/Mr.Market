@@ -35,7 +35,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y dkms build-essential linux-headers-$(uname -r) libsgx-enclave-common libsgx-urts libsgx-epid libsgx-quote-ex libsgx-launch
-          
+
       - name: Load In-Kernel SGX Module
         run: |
           sudo modprobe intel_sgx
@@ -43,26 +43,7 @@ jobs:
 
       - name: Install Utilities for Debconf
         run: |
-          sudo apt-get update
           sudo apt-get install -y apt-utils libterm-readline-gnu-perl
-
-      - name: Add Intel SGX Repository and Install Dependencies
-        run: |
-          sudo apt-get update
-          wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/intel-sgx-archive-keyring.gpg
-          echo "deb [signed-by=/etc/apt/trusted.gpg.d/intel-sgx-archive-keyring.gpg] https://download.01.org/intel-sgx/sgx_repo/ubuntu jammy main" | sudo tee /etc/apt/sources.list.d/intel-sgx.list
-          sudo apt-get update
-          sudo apt-get install -y libsgx-enclave-common libsgx-urts libsgx-epid libsgx-quote-ex libsgx-launch
-
-      - name: Install DKMS and Build Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y dkms build-essential
-
-      - name: Load In-Kernel SGX Module
-        run: |
-          sudo modprobe intel_sgx
-          lsmod | grep intel_sgx
 
       - name: Install Intel SGX SDK
         run: |
@@ -102,4 +83,3 @@ jobs:
         with:
           name: attestation-proof
           path: ./server/attestation/attestation_proof.json
-
