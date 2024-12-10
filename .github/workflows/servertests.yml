@@ -34,7 +34,26 @@ jobs:
       - name: Install DKMS and Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y dkms build-essential linux-headers-$(uname -r)
+          sudo apt-get install -y dkms build-essential
+
+      - name: Install Generic Kernel
+        run: |
+          sudo apt-get install -y linux-image-generic linux-headers-generic
+
+      - name: Set Default Boot to Generic Kernel
+        run: |
+          sudo sed -i 's/GRUB_DEFAULT=.*/GRUB_DEFAULT="Advanced options for Ubuntu>Ubuntu, with Linux generic"/' /etc/default/grub
+          sudo update-grub
+
+      - name: Reboot to Apply Kernel Changes
+        run: |
+          echo "Rebooting to apply the generic kernel..."
+          sudo reboot
+
+      - name: Load In-Kernel SGX Module
+        run: |
+          sudo modprobe intel_sgx
+          lsmod | grep intel_sgx
 
       - name: Add Intel SGX Repository and Install SGX Dependencies
         run: |
@@ -42,15 +61,6 @@ jobs:
           echo "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main" | sudo tee /etc/apt/sources.list.d/intel-sgx.list
           sudo apt-get update
           sudo apt-get install -y libsgx-enclave-common libsgx-urts libsgx-epid libsgx-quote-ex libsgx-launch
-
-      - name: Install Utilities for Debconf
-        run: |
-          sudo apt-get install -y apt-utils libterm-readline-gnu-perl
-
-      - name: Load In-Kernel SGX Module
-        run: |
-          sudo modprobe intel_sgx
-          lsmod | grep intel_sgx
 
       - name: Install Intel SGX SDK
         run: |
