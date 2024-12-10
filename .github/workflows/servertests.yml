@@ -49,6 +49,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y dkms linux-headers-$(uname -r) build-essential
 
+      - name: Install Intel SGX Driver
+        run: |
+          wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu22.04-server/sgx_linux_x64_driver_1.41.bin -O sgx_driver.bin
+          chmod +x sgx_driver.bin
+          sudo ./sgx_driver.bin
+
       - name: Install Intel SGX SDK
         run: |
           wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu22.04-server/sgx_linux_x64_sdk_2.25.100.3.bin -O sgx_sdk.bin
@@ -60,15 +66,11 @@ jobs:
           echo "SGX_SDK=/opt/intel/sgxsdk" >> $GITHUB_ENV
           echo "PATH=/opt/intel/sgxsdk/bin:/opt/intel/sgxsdk/bin/x64:$PATH" >> $GITHUB_ENV
 
-      - name: Enable SGX Simulation Mode
-        run: |
-          echo "SGX_MODE=SIM" >> $GITHUB_ENV
-
       - name: Install AESM Service and DCAP Tools
         run: |
           wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu22.04-server/sgx_debian_local_repo.tgz -O sgx_debian_local_repo.tgz
           tar -xzf sgx_debian_local_repo.tgz
-          sudo dpkg -i sgx_debian_local_repo/sgx-aesm-service*.deb || sudo apt-get install -f -y
+          sudo dpkg -i sgx_debian_local_repo/sgx-aesm-service*.deb
           sudo apt-get install -y libsgx-dcap-ql libsgx-dcap-quote-verify
 
       - name: Start AESM Service
@@ -79,12 +81,12 @@ jobs:
       - name: Verify SGX Tools Installation
         run: |
           ls /opt/intel/sgx-aesm-service/aesm
-          which sgx_get_quote || echo "sgx_get_quote not found"
+          which sgx_get_quote
 
       - name: Generate Attestation Proof
         run: |
           mkdir -p server/attestation
-          sgx_get_quote -o server/attestation/attestation_proof.json || echo "sgx_get_quote command failed"
+          sgx_get_quote -o server/attestation/attestation_proof.json
 
       - name: Upload Attestation Artifact
         uses: actions/upload-artifact@v3
