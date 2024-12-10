@@ -31,23 +31,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install DKMS and SGX Dependencies
+      - name: Install DKMS and Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y dkms build-essential linux-headers-$(uname -r) libsgx-enclave-common libsgx-urts libsgx-epid libsgx-quote-ex libsgx-launch
+          sudo apt-get install -y dkms build-essential linux-headers-$(uname -r)
+
+      - name: Add Intel SGX Repository and Install SGX Dependencies
+        run: |
+          wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
+          echo "deb https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main" | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+          sudo apt-get update
+          sudo apt-get install -y libsgx-enclave-common libsgx-urts libsgx-epid libsgx-quote-ex libsgx-launch
+
+      - name: Install Utilities for Debconf
+        run: |
+          sudo apt-get install -y apt-utils libterm-readline-gnu-perl
 
       - name: Load In-Kernel SGX Module
         run: |
           sudo modprobe intel_sgx
           lsmod | grep intel_sgx
 
-      - name: Install Utilities for Debconf
-        run: |
-          sudo apt-get install -y apt-utils libterm-readline-gnu-perl
-
       - name: Install Intel SGX SDK
         run: |
-          wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu22.04-server/sgx_linux_x64_sdk_2.25.100.3.bin -O sgx_sdk.bin
+          wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu20.04-server/sgx_linux_x64_sdk_2.25.100.3.bin -O sgx_sdk.bin
           chmod +x sgx_sdk.bin
           echo -e "no\n/opt/intel" | sudo ./sgx_sdk.bin
 
@@ -58,7 +65,7 @@ jobs:
 
       - name: Install AESM Service and DCAP Tools
         run: |
-          wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu22.04-server/sgx_debian_local_repo.tgz -O sgx_debian_local_repo.tgz
+          wget https://download.01.org/intel-sgx/latest/dcap-latest/linux/distro/ubuntu20.04-server/sgx_debian_local_repo.tgz -O sgx_debian_local_repo.tgz
           tar -xzf sgx_debian_local_repo.tgz
           sudo dpkg -i sgx_debian_local_repo/sgx-aesm-service*.deb
           sudo apt-get install -y libsgx-dcap-ql libsgx-dcap-quote-verify
